@@ -111,9 +111,8 @@ CreateThread(function()
                 if dist < 1.5 then
                     ESX.ShowHelpNotification("Appuyez sur ~INPUT_CONTEXT~ pour ouvrir le coffre")
                     if IsControlJustReleased(0, 38) then  -- touche E
-                        exports.ox_inventory:openInventory({
-                            type = 'stash',
-                            id   = 'blanch_'..id
+                        exports.ox_inventory:openInventory('stash', {
+                            id = 'blanch_' .. id
                         })
                     end
                 end
