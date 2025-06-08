@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS `blanchiment_points` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `owner` VARCHAR(64) NOT NULL,
+  `x` DOUBLE NOT NULL,
+  `y` DOUBLE NOT NULL,
+  `z` DOUBLE NOT NULL,
+  `allowed_item` VARCHAR(64) NOT NULL,
+  `output_item` VARCHAR(64) NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
