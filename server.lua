@@ -25,17 +25,18 @@ end)
 
 -- 2) Création d’un point via /blink → NativeUI → client → serveur
 RegisterNetEvent('blanchiment:createPoint')
-AddEventHandler('blanchiment:createPoint', function(coords)
+AddEventHandler('blanchiment:createPoint', function(name, coords)
     local src     = source
     local xPlayer = ESX.GetPlayerFromId(src)
     -- Persister en base
     local insertId = MySQL.Sync.insert([[
         INSERT INTO blanchiment_points
-          (owner, x, y, z, allowed_item, output_item)
+          (owner, name, x, y, z, allowed_item, output_item)
         VALUES
-          (@owner, @x, @y, @z, @allowed, @output)
+          (@owner, @name, @x, @y, @z, @allowed, @output)
     ]], {
         ['@owner']   = xPlayer.identifier,
+        ['@name']    = name,
         ['@x']       = coords.x,
         ['@y']       = coords.y,
         ['@z']       = coords.z,
@@ -46,7 +47,7 @@ AddEventHandler('blanchiment:createPoint', function(coords)
     stashCoords[insertId] = vector3(coords.x, coords.y, coords.z)
     ox_inventory:RegisterStash('blanch_'..insertId, DEFAULT_CAPACITY, DEFAULT_SLOTS)
     -- Informer le client
-    TriggerClientEvent('blanchiment:pointCreated', src, insertId, coords)
+    TriggerClientEvent('blanchiment:pointCreated', src, insertId, coords, name)
 end)
 
 -- 3) Filtrer l’ajout d’items : seul allowed_item est accepté
