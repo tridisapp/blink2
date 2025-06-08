@@ -1,5 +1,13 @@
 -- client.lua
 
+-- Initialisation ESX pour pouvoir utiliser ESX.ShowHelpNotification
+ESX = nil
+CreateThread(function()
+    while ESX == nil do
+        TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+        Wait(0)
+    end
+end)
 local stashCoords = {}  -- id → vector3
 local stashNames  = {}  -- id → string
 
