@@ -3,6 +3,12 @@
 local stashCoords = {}  -- id → vector3
 local stashNames  = {}  -- id → string
 
+-- Charger les points enregistrés quand le joueur se connecte
+RegisterNetEvent('esx:playerLoaded')
+AddEventHandler('esx:playerLoaded', function()
+    TriggerServerEvent('blanchiment:requestPoints')
+end)
+
 local function KeyboardInput(text, example, maxLength)
     AddTextEntry('BLINK_INPUT', text)
     DisplayOnscreenKeyboard(1, 'BLINK_INPUT', '', example or '', '', '', '', maxLength or 30)
@@ -60,6 +66,22 @@ AddEventHandler('blanchiment:pointCreated', function(id, coords, name)
     BeginTextCommandSetBlipName("STRING")
     AddTextComponentString(name or "Point de blanchiment")
     EndTextCommandSetBlipName(blip)
+end)
+
+-- Chargement initial de tous les points
+RegisterNetEvent('blanchiment:loadPoints')
+AddEventHandler('blanchiment:loadPoints', function(points)
+    for _, data in ipairs(points) do
+        stashCoords[data.id] = vector3(data.x, data.y, data.z)
+        stashNames[data.id]  = data.name
+        local blip = AddBlipForCoord(data.x, data.y, data.z)
+        SetBlipSprite(blip, 521)
+        SetBlipColour(blip, 1)
+        SetBlipScale(blip, 0.8)
+        BeginTextCommandSetBlipName("STRING")
+        AddTextComponentString(data.name or "Point de blanchiment")
+        EndTextCommandSetBlipName(blip)
+    end
 end)
 
 -- 3) Boucle pour dessiner markers et interaction

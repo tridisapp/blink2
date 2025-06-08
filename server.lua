@@ -15,6 +15,7 @@ local TRANSFORM_DELAY_MS = 5 * 60 * 1000  -- 5 minutes
 
 -- Stockage en mémoire des coords
 local stashCoords = {}
+local stashNames  = {}
 
 -- 1) Au démarrage, charger tous les points enregistrés
 MySQL.ready(function()
@@ -22,6 +23,7 @@ MySQL.ready(function()
     for _, row in ipairs(rows) do
         local stashName = 'blanch_' .. row.id
         stashCoords[row.id] = vector3(row.x, row.y, row.z)
+        stashNames[row.id]  = row.name
         ox_inventory:RegisterStash(stashName, DEFAULT_CAPACITY, DEFAULT_SLOTS)
     end
 end)
@@ -48,9 +50,27 @@ AddEventHandler('blanchiment:createPoint', function(name, coords)
     })
     -- Enregistrer côté serveur
     stashCoords[insertId] = vector3(coords.x, coords.y, coords.z)
+    stashNames[insertId]  = name
     ox_inventory:RegisterStash('blanch_'..insertId, DEFAULT_CAPACITY, DEFAULT_SLOTS)
     -- Informer le client
     TriggerClientEvent('blanchiment:pointCreated', src, insertId, coords, name)
+end)
+
+-- Envoi des points existants à un joueur
+RegisterNetEvent('blanchiment:requestPoints')
+AddEventHandler('blanchiment:requestPoints', function()
+    local src    = source
+    local points = {}
+    for id, coords in pairs(stashCoords) do
+        points[#points+1] = {
+            id   = id,
+            x    = coords.x,
+            y    = coords.y,
+            z    = coords.z,
+            name = stashNames[id]
+        }
+    end
+    TriggerClientEvent('blanchiment:loadPoints', src, points)
 end)
 
 -- 3) Filtrer l’ajout d’items : seul allowed_item est accepté
