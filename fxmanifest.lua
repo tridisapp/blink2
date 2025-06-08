@@ -8,7 +8,6 @@ version '1.0.0'
 
 -- Dépendances
 dependency 'ox_inventory'
-dependency 'ox_core'
 dependency 'ox_lib'
 dependency 'es_extended'
 dependency 'mysql-async'  -- ou ghmattimysql selon votre config
