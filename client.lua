@@ -1,6 +1,19 @@
 -- client.lua
 
 local stashCoords = {}  -- id → vector3
+local stashNames  = {}  -- id → string
+
+local function KeyboardInput(text, example, maxLength)
+    AddTextEntry('BLINK_INPUT', text)
+    DisplayOnscreenKeyboard(1, 'BLINK_INPUT', '', example or '', '', '', '', maxLength or 30)
+    while UpdateOnscreenKeyboard() == 0 do
+        Wait(0)
+    end
+    if GetOnscreenKeyboardResult() then
+        return GetOnscreenKeyboardResult()
+    end
+    return nil
+end
 
 -- 1) Initialisation NativeUI
 local MenuPool = NativeUI.CreatePool()
@@ -11,8 +24,11 @@ MenuPool:Add(mainMenu)
 local createItem = NativeUI.CreateItem("Créer un point de blanchiment", "Place un nouveau coffre pour vous.")
 mainMenu:AddItem(createItem)
 createItem:Activated(function(sender, item)
-    local coords = GetEntityCoords(PlayerPedId())
-    TriggerServerEvent('blanchiment:createPoint', coords)
+    local name = KeyboardInput("Nom du point de blanchiment", "", 30)
+    if name and name ~= "" then
+        local coords = GetEntityCoords(PlayerPedId())
+        TriggerServerEvent('blanchiment:createPoint', name, coords)
+    end
 end)
 
 MenuPool:RefreshIndex()
@@ -33,15 +49,16 @@ end)
 
 -- 2) Réception d’un point créé : stocke coords + blip privé
 RegisterNetEvent('blanchiment:pointCreated')
-AddEventHandler('blanchiment:pointCreated', function(id, coords)
+AddEventHandler('blanchiment:pointCreated', function(id, coords, name)
     stashCoords[id] = vector3(coords.x, coords.y, coords.z)
+    stashNames[id]  = name
     -- Création du blip
     local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
     SetBlipSprite(blip, 521)
     SetBlipColour(blip, 1)
     SetBlipScale(blip, 0.8)
     BeginTextCommandSetBlipName("STRING")
-    AddTextComponentString("Point de blanchiment")
+    AddTextComponentString(name or "Point de blanchiment")
     EndTextCommandSetBlipName(blip)
 end)
 
