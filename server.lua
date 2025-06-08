@@ -24,7 +24,9 @@ MySQL.ready(function()
         local stashName = 'blanch_' .. row.id
         stashCoords[row.id] = vector3(row.x, row.y, row.z)
         stashNames[row.id]  = row.name
-        ox_inventory:RegisterStash(stashName, DEFAULT_CAPACITY, DEFAULT_SLOTS)
+        -- Le label doit être fourni avant les paramètres slots et poids
+        -- RegisterStash(name, label, slots, maxWeight)
+        ox_inventory:RegisterStash(stashName, row.name, DEFAULT_SLOTS, DEFAULT_CAPACITY)
     end
 end)
 
@@ -51,7 +53,8 @@ AddEventHandler('blanchiment:createPoint', function(name, coords)
     -- Enregistrer côté serveur
     stashCoords[insertId] = vector3(coords.x, coords.y, coords.z)
     stashNames[insertId]  = name
-    ox_inventory:RegisterStash('blanch_'..insertId, DEFAULT_CAPACITY, DEFAULT_SLOTS)
+    -- Utilise l'API RegisterStash(name, label, slots, maxWeight)
+    ox_inventory:RegisterStash('blanch_'..insertId, name, DEFAULT_SLOTS, DEFAULT_CAPACITY)
     -- Informer le client
     TriggerClientEvent('blanchiment:pointCreated', src, insertId, coords, name)
 end)
