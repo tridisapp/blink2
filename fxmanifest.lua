@@ -23,7 +23,8 @@ client_scripts {
     'client.lua'
 }
 
--- NativeUI (inclure dans votre ressource ou installer séparément)
+-- Utilise la ressource NativeUI déjà installée
+dependency 'NativeUI'
 shared_scripts {
-    'NativeUI.lua'
+    '@NativeUI/NativeUI.lua'
 }
