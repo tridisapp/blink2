@@ -9,7 +9,8 @@ local ox_inventory = exports.ox_inventory
 -- Paramètres par défaut
 local DEFAULT_CAPACITY   = 50000    -- 50 kg
 local DEFAULT_SLOTS      = 16
-local DEFAULT_ALLOWED    = 'coca_leaf'
+-- Seul l'argent liquide est accepté dans le coffre
+local DEFAULT_ALLOWED    = 'money'
 local DEFAULT_OUTPUT     = 'cocaine_bag'
 local TRANSFORM_DELAY_MS = 5 * 60 * 1000  -- 5 minutes
 
