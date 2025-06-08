@@ -4,7 +4,7 @@ ESX = nil
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
 -- Paramètres par défaut
-local DEFAULT_CAPACITY   = 50_000    -- 50 kg
+local DEFAULT_CAPACITY   = 50000    -- 50 kg
 local DEFAULT_SLOTS      = 16
 local DEFAULT_ALLOWED    = 'coca_leaf'
 local DEFAULT_OUTPUT     = 'cocaine_bag'
