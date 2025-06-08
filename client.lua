@@ -23,13 +23,13 @@ MenuPool:Add(mainMenu)
 -- Item de création de point
 local createItem = NativeUI.CreateItem("Créer un point de blanchiment", "Place un nouveau coffre pour vous.")
 mainMenu:AddItem(createItem)
-createItem:Activated(function(sender, item)
+createItem.Activated = function(sender, item)
     local name = KeyboardInput("Nom du point de blanchiment", "", 30)
     if name and name ~= "" then
         local coords = GetEntityCoords(PlayerPedId())
         TriggerServerEvent('blanchiment:createPoint', name, coords)
     end
-end)
+end
 
 MenuPool:RefreshIndex()
 
