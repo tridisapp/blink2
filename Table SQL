@@ -5,8 +5,6 @@ CREATE TABLE IF NOT EXISTS `blanchiment_points` (
   `x` DOUBLE NOT NULL,
   `y` DOUBLE NOT NULL,
   `z` DOUBLE NOT NULL,
-  `allowed_item` VARCHAR(64) NOT NULL,
-  `output_item` VARCHAR(64) NOT NULL,
   `inventory` TEXT,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

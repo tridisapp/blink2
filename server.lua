@@ -10,9 +10,6 @@ local ox_inventory = exports.ox_inventory
 local DEFAULT_CAPACITY   = 50000    -- 50 kg
 local DEFAULT_SLOTS      = 16
 -- Seul l'argent liquide est accepté dans le coffre
-local DEFAULT_ALLOWED    = 'money'
-local DEFAULT_OUTPUT     = 'cocaine_bag'
-local TRANSFORM_DELAY_MS = 5 * 60 * 1000  -- 5 minutes
 
 -- Stockage en mémoire des coords
 local stashCoords = {}
@@ -39,17 +36,15 @@ AddEventHandler('blanchiment:createPoint', function(name, coords)
     -- Persister en base
     local insertId = MySQL.Sync.insert([[
         INSERT INTO blanchiment_points
-          (owner, name, x, y, z, allowed_item, output_item, inventory)
+          (owner, name, x, y, z, inventory)
         VALUES
-          (@owner, @name, @x, @y, @z, @allowed, @output, @inventory)
+          (@owner, @name, @x, @y, @z, @inventory)
     ]], {
-        ['@owner']   = xPlayer.identifier,
-        ['@name']    = name,
-        ['@x']       = coords.x,
-        ['@y']       = coords.y,
-        ['@z']       = coords.z,
-        ['@allowed'] = DEFAULT_ALLOWED,
-        ['@output']  = DEFAULT_OUTPUT,
+        ['@owner']     = xPlayer.identifier,
+        ['@name']      = name,
+        ['@x']         = coords.x,
+        ['@y']         = coords.y,
+        ['@z']         = coords.z,
         ['@inventory'] = json.encode({count = 0, slot = 1, name = ''})
     })
     -- Enregistrer côté serveur
@@ -83,25 +78,3 @@ AddEventHandler('ox_inventory:beforeItemAdded', function(source, stashName, item
     callback(true)
 end)
 
--- 4) Transformation automatique après délai
-AddEventHandler('ox_inventory:itemAdded', function(source, stashName, itemName, count)
-    local prefix = 'blanch_'
-    if stashName:sub(1, #prefix) == prefix then
-        local id  = tonumber(stashName:sub(#prefix+1))
-        local row = MySQL.Sync.fetchAll([[
-            SELECT output_item FROM blanchiment_points WHERE id = @id
-        ]], { ['@id']=id })[1]
-        if row and itemName == row.allowed_item then
-            SetTimeout(TRANSFORM_DELAY_MS, function()
-                if ESX.GetPlayerFromId(source) then
-                    local removed = ox_inventory:RemoveItem(source, stashName, itemName, count)
-                    if removed then
-                        ox_inventory:AddItem(source, stashName, row.output_item, count)
-                        TriggerClientEvent('esx:showNotification', source,
-                            count .. 'x ' .. row.output_item .. ' prêts à être récupérés')
-                    end
-                end
-            end)
-        end
-    end
-end)
