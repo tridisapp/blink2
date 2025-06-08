@@ -3,6 +3,9 @@
 ESX = nil
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
+-- Référence vers les exports d'ox_inventory
+local ox_inventory = exports.ox_inventory
+
 -- Paramètres par défaut
 local DEFAULT_CAPACITY   = 50000    -- 50 kg
 local DEFAULT_SLOTS      = 16
