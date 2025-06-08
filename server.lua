@@ -39,9 +39,9 @@ AddEventHandler('blanchiment:createPoint', function(name, coords)
     -- Persister en base
     local insertId = MySQL.Sync.insert([[
         INSERT INTO blanchiment_points
-          (owner, name, x, y, z, allowed_item, output_item)
+          (owner, name, x, y, z, allowed_item, output_item, inventory)
         VALUES
-          (@owner, @name, @x, @y, @z, @allowed, @output)
+          (@owner, @name, @x, @y, @z, @allowed, @output, @inventory)
     ]], {
         ['@owner']   = xPlayer.identifier,
         ['@name']    = name,
@@ -49,7 +49,8 @@ AddEventHandler('blanchiment:createPoint', function(name, coords)
         ['@y']       = coords.y,
         ['@z']       = coords.z,
         ['@allowed'] = DEFAULT_ALLOWED,
-        ['@output']  = DEFAULT_OUTPUT
+        ['@output']  = DEFAULT_OUTPUT,
+        ['@inventory'] = json.encode({count = 0, slot = 1, name = ''})
     })
     -- Enregistrer côté serveur
     stashCoords[insertId] = vector3(coords.x, coords.y, coords.z)
@@ -77,19 +78,8 @@ AddEventHandler('blanchiment:requestPoints', function()
     TriggerClientEvent('blanchiment:loadPoints', src, points)
 end)
 
--- 3) Filtrer l’ajout d’items : seul allowed_item est accepté
+-- 3) Autoriser l’ajout de tous les items sans restriction
 AddEventHandler('ox_inventory:beforeItemAdded', function(source, stashName, itemName, count, meta, callback)
-    local xPlayer = ESX.GetPlayerFromId(source)
-    local prefix  = 'blanch_'
-    if stashName:sub(1, #prefix) == prefix then
-        -- Extraire l’ID
-        local id = tonumber(stashName:sub(#prefix+1))
-        -- Seul allowed_item (en base) est accepté
-        local row = MySQL.Sync.fetchAll("SELECT allowed_item FROM blanchiment_points WHERE id = @id", { ['@id']=id })[1]
-        if row and itemName ~= row.allowed_item then
-            return callback(false)
-        end
-    end
     callback(true)
 end)
 
