@@ -72,4 +72,27 @@ AddEventHandler('blanchiment:requestPoints', function()
 end)
 
 
+-- Stockage d'un homme de main en base
+RegisterNetEvent('blanchiment:addPed')
+AddEventHandler('blanchiment:addPed', function(name)
+    MySQL.Sync.insert(
+        'INSERT INTO blanchiment_ped (name) VALUES (@name)',
+        { ['@name'] = name }
+    )
+end)
+
+-- Stockage d'un point de rendez-vous
+RegisterNetEvent('blanchiment:addPedPoint')
+AddEventHandler('blanchiment:addPedPoint', function(coords)
+    MySQL.Sync.insert(
+        'INSERT INTO blanchiment_ped_point (x, y, z) VALUES (@x, @y, @z)',
+        {
+            ['@x'] = coords.x,
+            ['@y'] = coords.y,
+            ['@z'] = coords.z
+        }
+    )
+end)
+
+
 
