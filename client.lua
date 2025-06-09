@@ -10,6 +10,7 @@ CreateThread(function()
 end)
 local stashCoords = {}  -- id → vector3
 local stashNames  = {}  -- id → string
+local stashPeds   = {}  -- id → ped handle
 
 -- Charger les points enregistrés quand le joueur se connecte
 RegisterNetEvent('esx:playerLoaded')
@@ -27,6 +28,20 @@ local function KeyboardInput(text, example, maxLength)
         return GetOnscreenKeyboardResult()
     end
     return nil
+end
+
+-- Spawn a ped used for interaction
+local function SpawnStashPed(id, coords)
+    local model = GetHashKey('u_m_y_smugmech_01')
+    RequestModel(model)
+    while not HasModelLoaded(model) do
+        Wait(0)
+    end
+    local ped = CreatePed(4, model, coords.x, coords.y, coords.z - 1.0, 0.0, true, true)
+    FreezeEntityPosition(ped, true)
+    SetEntityInvincible(ped, true)
+    SetBlockingOfNonTemporaryEvents(ped, true)
+    stashPeds[id] = ped
 end
 
 -- 1) Initialisation NativeUI
@@ -66,6 +81,7 @@ RegisterNetEvent('blanchiment:pointCreated')
 AddEventHandler('blanchiment:pointCreated', function(id, coords, name)
     stashCoords[id] = vector3(coords.x, coords.y, coords.z)
     stashNames[id]  = name
+    SpawnStashPed(id, coords)
     -- Création du blip
     local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
     SetBlipSprite(blip, 521)
@@ -82,6 +98,7 @@ AddEventHandler('blanchiment:loadPoints', function(points)
     for _, data in ipairs(points) do
         stashCoords[data.id] = vector3(data.x, data.y, data.z)
         stashNames[data.id]  = data.name
+        SpawnStashPed(data.id, vector3(data.x, data.y, data.z))
         local blip = AddBlipForCoord(data.x, data.y, data.z)
         SetBlipSprite(blip, 521)
         SetBlipColour(blip, 1)
@@ -98,17 +115,10 @@ CreateThread(function()
         local ped = PlayerPedId()
         local pos = GetEntityCoords(ped)
 
-        for id, coords in pairs(stashCoords) do
-            local dist = #(pos - coords)
-            if dist < 20.0 then
-                DrawMarker(1,
-                    coords.x, coords.y, coords.z - 1.0,
-                    0, 0, 0, 0, 0, 0,
-                    1.0, 1.0, 1.0,
-                    0, 150, 255, 100,
-                    false, true, 2, nil, nil, false
-                )
-                if dist < 1.5 then
+        for id, pedHandle in pairs(stashPeds) do
+            if DoesEntityExist(pedHandle) then
+                local dist = #(pos - GetEntityCoords(pedHandle))
+                if dist < 2.0 then
                     ESX.ShowHelpNotification("Appuyez sur ~INPUT_CONTEXT~ pour ouvrir le coffre")
                     if IsControlJustReleased(0, 38) then  -- touche E
                         exports.ox_inventory:openInventory('stash', {
