@@ -101,18 +101,18 @@ local function startProcessing(id)
     end)
 end
 
-AddEventHandler('ox_inventory:beforeItemAdded', function(source, stashName, itemName, count, meta, callback)
-    local id = stashName:match('blanch_(%d+)')
+AddEventHandler('ox_inventory:preAddItem', function(source, inventory, itemName, count, slot, metadata, cb)
+    local id = inventory:match('blanch_(%d+)')
     if id then
         id = tonumber(id)
         if itemName ~= allowedItem[id] then
-            callback(false)
+            cb(false)
             return
         end
-        callback(true)
+        cb(true)
         startProcessing(id)
     else
-        callback(true)
+        cb(true)
     end
 end)
 
