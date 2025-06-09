@@ -50,13 +50,12 @@ local mainMenu = NativeUI.CreateMenu("Blanchiment", "Gestion des points")
 MenuPool:Add(mainMenu)
 
 -- Item de création de point (renommé)
-local createItem = NativeUI.CreateItem("envoyer un homme de main récupérer le fric", "Place un nouveau coffre pour vous.")
+local createItem = NativeUI.CreateItem("envoyer un homme de main", "Place un nouveau coffre pour vous.")
 mainMenu:AddItem(createItem)
 createItem.Activated = function(sender, item)
     local name = KeyboardInput("Nom du point de blanchiment", "", 30)
     if name and name ~= "" then
-        local coords = GetEntityCoords(PlayerPedId())
-        TriggerServerEvent('blanchiment:createPoint', name, coords)
+        TriggerServerEvent('blanchiment:createPoint', name)
     end
 end
 
