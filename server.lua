@@ -10,8 +10,9 @@ local ox_inventory = exports.ox_inventory
 local DEFAULT_CAPACITY   = 0        -- poids illimité
 local DEFAULT_SLOTS      = 16
 -- Stockage en mémoire des coords
-local stashCoords = {}
-local stashNames  = {}
+local stashCoords    = {}
+local stashNames     = {}
+local stashPedModels = {}
 
 local function getRandomPedPoint()
     local rows = MySQL.Sync.fetchAll(
@@ -38,8 +39,9 @@ MySQL.ready(function()
     local rows = MySQL.Sync.fetchAll("SELECT * FROM blanchiment_points")
     for _, row in ipairs(rows) do
         local stashName = 'blanch_' .. row.id
-        stashCoords[row.id] = vector3(row.x, row.y, row.z)
-        stashNames[row.id]  = row.name
+        stashCoords[row.id]    = vector3(row.x, row.y, row.z)
+        stashNames[row.id]     = row.name
+        stashPedModels[row.id] = row.ped or 'u_m_y_smugmech_01'
         -- Le label doit être fourni avant les paramètres slots et poids
         -- RegisterStash(name, label, slots, maxWeight)
         ox_inventory:RegisterStash(stashName, row.name, DEFAULT_SLOTS, DEFAULT_CAPACITY)
@@ -73,12 +75,13 @@ AddEventHandler('blanchiment:createPoint', function(name)
         ['@inventory'] = json.encode({count = 0, slot = 1, name = ''})
     })
     -- Enregistrer côté serveur
-    stashCoords[insertId] = vector3(coords.x, coords.y, coords.z)
-    stashNames[insertId]  = name
+    stashCoords[insertId]    = vector3(coords.x, coords.y, coords.z)
+    stashNames[insertId]     = name
+    stashPedModels[insertId] = pedName
     -- Utilise l'API RegisterStash(name, label, slots, maxWeight)
     ox_inventory:RegisterStash('blanch_'..insertId, name, DEFAULT_SLOTS, DEFAULT_CAPACITY)
     -- Informer le client
-    TriggerClientEvent('blanchiment:pointCreated', src, insertId, coords, name)
+    TriggerClientEvent('blanchiment:pointCreated', src, insertId, coords, name, pedName)
 end)
 
 -- Envoi des points existants à un joueur
@@ -92,7 +95,8 @@ AddEventHandler('blanchiment:requestPoints', function()
             x    = coords.x,
             y    = coords.y,
             z    = coords.z,
-            name = stashNames[id]
+            name = stashNames[id],
+            ped  = stashPedModels[id]
         }
     end
     TriggerClientEvent('blanchiment:loadPoints', src, points)
