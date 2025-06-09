@@ -102,7 +102,8 @@ local function startProcessing(id)
 end
 
 AddEventHandler('ox_inventory:preAddItem', function(source, inventory, itemName, count, slot, metadata, cb)
-    local id = inventory:match('blanch_(%d+)')
+    local invName = type(inventory) == 'table' and inventory.name or inventory
+    local id = invName and invName:match('blanch_(%d+)')
     if id then
         id = tonumber(id)
         if itemName ~= allowedItem[id] then
