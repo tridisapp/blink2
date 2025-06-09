@@ -13,6 +13,26 @@ local DEFAULT_SLOTS      = 16
 local stashCoords = {}
 local stashNames  = {}
 
+local function getRandomPedPoint()
+    local rows = MySQL.Sync.fetchAll(
+        'SELECT x, y, z FROM blanchiment_ped_point ORDER BY RAND() LIMIT 1'
+    )
+    if rows[1] then
+        return vector3(rows[1].x, rows[1].y, rows[1].z)
+    end
+    return nil
+end
+
+local function getRandomPedName()
+    local rows = MySQL.Sync.fetchAll(
+        'SELECT name FROM blanchiment_ped ORDER BY RAND() LIMIT 1'
+    )
+    if rows[1] then
+        return rows[1].name
+    end
+    return 'Unknown'
+end
+
 -- 1) Au démarrage, charger tous les points enregistrés
 MySQL.ready(function()
     local rows = MySQL.Sync.fetchAll("SELECT * FROM blanchiment_points")
@@ -28,21 +48,28 @@ end)
 
 -- 2) Création d’un point via /blink → NativeUI → client → serveur
 RegisterNetEvent('blanchiment:createPoint')
-AddEventHandler('blanchiment:createPoint', function(name, coords)
+AddEventHandler('blanchiment:createPoint', function(name)
     local src     = source
     local xPlayer = ESX.GetPlayerFromId(src)
+    local coords  = getRandomPedPoint()
+    if not coords then
+        TriggerClientEvent('esx:showNotification', src, 'Aucun point disponible')
+        return
+    end
+    local pedName = getRandomPedName()
     -- Persister en base
     local insertId = MySQL.Sync.insert([[
         INSERT INTO blanchiment_points
-          (owner, name, x, y, z, inventory)
+          (owner, name, x, y, z, ped, inventory)
         VALUES
-          (@owner, @name, @x, @y, @z, @inventory)
+          (@owner, @name, @x, @y, @z, @ped, @inventory)
     ]], {
         ['@owner']     = xPlayer.identifier,
         ['@name']      = name,
         ['@x']         = coords.x,
         ['@y']         = coords.y,
         ['@z']         = coords.z,
+        ['@ped']       = pedName,
         ['@inventory'] = json.encode({count = 0, slot = 1, name = ''})
     })
     -- Enregistrer côté serveur
