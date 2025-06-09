@@ -49,14 +49,33 @@ local MenuPool = NativeUI.CreatePool()
 local mainMenu = NativeUI.CreateMenu("Blanchiment", "Gestion des points")
 MenuPool:Add(mainMenu)
 
--- Item de création de point
-local createItem = NativeUI.CreateItem("Créer un point de blanchiment", "Place un nouveau coffre pour vous.")
+-- Item de création de point (renommé)
+local createItem = NativeUI.CreateItem("envoyer un homme de main récupérer le fric", "Place un nouveau coffre pour vous.")
 mainMenu:AddItem(createItem)
 createItem.Activated = function(sender, item)
     local name = KeyboardInput("Nom du point de blanchiment", "", 30)
     if name and name ~= "" then
         local coords = GetEntityCoords(PlayerPedId())
         TriggerServerEvent('blanchiment:createPoint', name, coords)
+    end
+end
+
+-- Item pour ajouter un point de rendez-vous
+local addPointItem = NativeUI.CreateItem("Ajouter un point de rendez-vous", "Enregistre la position actuelle")
+mainMenu:AddItem(addPointItem)
+addPointItem.Activated = function(sender, item)
+    local coords = GetEntityCoords(PlayerPedId())
+    TriggerServerEvent('blanchiment:addPedPoint', coords)
+    ESX.ShowNotification(('l\'emplacement %.2f %.2f %.2f a été ajouté'):format(coords.x, coords.y, coords.z))
+end
+
+-- Item pour recruter un homme de main
+local recruitItem = NativeUI.CreateItem("Recruter un homme de main", "Ajoute un nouveau ped")
+mainMenu:AddItem(recruitItem)
+recruitItem.Activated = function(sender, item)
+    local pedName = KeyboardInput("Nom de l'homme de main", "", 30)
+    if pedName and pedName ~= "" then
+        TriggerServerEvent('blanchiment:addPed', pedName)
     end
 end
 
