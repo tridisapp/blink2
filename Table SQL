@@ -6,7 +6,5 @@ CREATE TABLE IF NOT EXISTS `blanchiment_points` (
   `y` DOUBLE NOT NULL,
   `z` DOUBLE NOT NULL,
   `inventory` TEXT,
-  `allowed_item` VARCHAR(64) NOT NULL DEFAULT 'black_money',
-  `transform_item` VARCHAR(64) NOT NULL DEFAULT 'money',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
