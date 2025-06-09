@@ -8,9 +8,10 @@ CreateThread(function()
         Wait(0)
     end
 end)
-local stashCoords = {}  -- id → vector3
-local stashNames  = {}  -- id → string
-local stashPeds   = {}  -- id → ped handle
+local stashCoords    = {}  -- id → vector3
+local stashNames     = {}  -- id → string
+local stashPedModels = {}  -- id → string
+local stashPeds      = {}  -- id → ped handle
 
 -- Charger les points enregistrés quand le joueur se connecte
 RegisterNetEvent('esx:playerLoaded')
@@ -31,8 +32,8 @@ local function KeyboardInput(text, example, maxLength)
 end
 
 -- Spawn a ped used for interaction
-local function SpawnStashPed(id, coords)
-    local model = GetHashKey('u_m_y_smugmech_01')
+local function SpawnStashPed(id, coords, pedModel)
+    local model = GetHashKey(pedModel or 'u_m_y_smugmech_01')
     RequestModel(model)
     while not HasModelLoaded(model) do
         Wait(0)
@@ -96,10 +97,11 @@ end)
 
 -- 2) Réception d’un point créé : stocke coords + blip privé
 RegisterNetEvent('blanchiment:pointCreated')
-AddEventHandler('blanchiment:pointCreated', function(id, coords, name)
-    stashCoords[id] = vector3(coords.x, coords.y, coords.z)
-    stashNames[id]  = name
-    SpawnStashPed(id, coords)
+AddEventHandler('blanchiment:pointCreated', function(id, coords, name, pedModel)
+    stashCoords[id]    = vector3(coords.x, coords.y, coords.z)
+    stashNames[id]     = name
+    stashPedModels[id] = pedModel or 'u_m_y_smugmech_01'
+    SpawnStashPed(id, coords, stashPedModels[id])
     -- Création du blip
     local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
     SetBlipSprite(blip, 521)
@@ -114,9 +116,10 @@ end)
 RegisterNetEvent('blanchiment:loadPoints')
 AddEventHandler('blanchiment:loadPoints', function(points)
     for _, data in ipairs(points) do
-        stashCoords[data.id] = vector3(data.x, data.y, data.z)
-        stashNames[data.id]  = data.name
-        SpawnStashPed(data.id, vector3(data.x, data.y, data.z))
+        stashCoords[data.id]    = vector3(data.x, data.y, data.z)
+        stashNames[data.id]     = data.name
+        stashPedModels[data.id] = data.ped or 'u_m_y_smugmech_01'
+        SpawnStashPed(data.id, vector3(data.x, data.y, data.z), stashPedModels[data.id])
         local blip = AddBlipForCoord(data.x, data.y, data.z)
         SetBlipSprite(blip, 521)
         SetBlipColour(blip, 1)
