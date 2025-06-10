@@ -66,6 +66,21 @@ end
 local MenuPool = NativeUI.CreatePool()
 local mainMenu = NativeUI.CreateMenu("Blanchiment", "Gestion des points")
 MenuPool:Add(mainMenu)
+local chefMenu = NativeUI.CreateMenu("Chef", "Choisissez un coffre")
+MenuPool:Add(chefMenu)
+
+local function OpenChefMenu()
+    chefMenu:Clear()
+    for id, name in pairs(stashNames) do
+        local item = NativeUI.CreateItem(name, '')
+        chefMenu:AddItem(item)
+        item.Activated = function()
+            exports.ox_inventory:openInventory('stash', { id = 'blanch_' .. id })
+        end
+    end
+    MenuPool:RefreshIndex()
+    chefMenu:Visible(true)
+end
 
 -- Item de création de point (renommé)
 local createItem = NativeUI.CreateItem("envoyer un homme de main", "Place un nouveau coffre pour vous.")
@@ -100,18 +115,15 @@ end
 local chefItem = NativeUI.CreateItem("Placer le chef", "Place le chef a votre position")
 mainMenu:AddItem(chefItem)
 chefItem.Activated = function(sender, item)
-    local name = KeyboardInput("Nom du chef", "", 30)
-    if name and name ~= "" then
-        local ped = PlayerPedId()
-        local coords = GetEntityCoords(ped)
-        local forward = GetEntityForwardVector(ped)
-        local spawn = vector3(
-            coords.x + forward.x * 1.5,
-            coords.y + forward.y * 1.5,
-            coords.z
-        )
-        TriggerServerEvent('blanchiment:placeChef', name, spawn)
-    end
+    local ped = PlayerPedId()
+    local coords = GetEntityCoords(ped)
+    local forward = GetEntityForwardVector(ped)
+    local spawn = vector3(
+        coords.x + forward.x * 1.5,
+        coords.y + forward.y * 1.5,
+        coords.z
+    )
+    TriggerServerEvent('blanchiment:placeChef', spawn)
 end
 
 MenuPool:RefreshIndex()
@@ -228,11 +240,9 @@ CreateThread(function()
             if DoesEntityExist(pedHandle) then
                 local dist = #(pos - GetEntityCoords(pedHandle))
                 if dist < 2.0 then
-                    ESX.ShowHelpNotification("Appuyez sur ~INPUT_CONTEXT~ pour ouvrir le coffre")
+                    ESX.ShowHelpNotification("Appuyez sur ~INPUT_CONTEXT~ pour parler au chef")
                     if IsControlJustReleased(0, 38) then
-                        exports.ox_inventory:openInventory('stash', {
-                            id = 'chef_' .. id
-                        })
+                        OpenChefMenu()
                     end
                 end
             end

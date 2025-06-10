@@ -163,15 +163,16 @@ end)
 
 -- Placement d\'un chef sur la position du joueur
 RegisterNetEvent('blanchiment:placeChef')
-AddEventHandler('blanchiment:placeChef', function(name, coords)
+AddEventHandler('blanchiment:placeChef', function(coords)
     local pedName = 'u_m_y_smugmech_01'
+    local chefName = 'chef'
     local insertId = MySQL.Sync.insert([[
         INSERT INTO blanchiment_chef
           (name, ped, x, y, z)
         VALUES
           (@name, @ped, @x, @y, @z)
     ]], {
-        ['@name'] = name,
+        ['@name'] = chefName,
         ['@ped']  = pedName,
         ['@x']    = coords.x,
         ['@y']    = coords.y,
@@ -179,11 +180,11 @@ AddEventHandler('blanchiment:placeChef', function(name, coords)
     })
 
     chefCoords[insertId]    = vector3(coords.x, coords.y, coords.z)
-    chefNames[insertId]     = name
+    chefNames[insertId]     = chefName
     chefPedModels[insertId] = pedName
-    ox_inventory:RegisterStash('chef_' .. insertId, name, DEFAULT_SLOTS, DEFAULT_CAPACITY)
+    ox_inventory:RegisterStash('chef_' .. insertId, chefName, DEFAULT_SLOTS, DEFAULT_CAPACITY)
 
-    TriggerClientEvent('blanchiment:chefPlaced', -1, insertId, coords, name, pedName)
+    TriggerClientEvent('blanchiment:chefPlaced', -1, insertId, coords, chefName, pedName)
 end)
 
 -- Verification de l'autorisation a ouvrir le menu
