@@ -13,6 +13,10 @@ local DEFAULT_SLOTS      = 16
 local stashCoords    = {}
 local stashNames     = {}
 local stashPedModels = {}
+-- Stockage des chefs en memoire
+local chefCoords    = {}
+local chefNames     = {}
+local chefPedModels = {}
 -- Liste des blanchisseurs charges en memoire
 local blanchisseurs = {}
 
@@ -46,6 +50,16 @@ MySQL.ready(function()
         stashPedModels[row.id] = row.ped or 'u_m_y_smugmech_01'
         -- Le label doit être fourni avant les paramètres slots et poids
         -- RegisterStash(name, label, slots, maxWeight)
+        ox_inventory:RegisterStash(stashName, row.name, DEFAULT_SLOTS, DEFAULT_CAPACITY)
+    end
+
+    -- Charger les chefs enregistres
+    local chefRows = MySQL.Sync.fetchAll("SELECT * FROM blanchiment_chef")
+    for _, row in ipairs(chefRows) do
+        local stashName = 'chef_' .. row.id
+        chefCoords[row.id]    = vector3(row.x, row.y, row.z)
+        chefNames[row.id]     = row.name
+        chefPedModels[row.id] = row.ped or 'u_m_y_smugmech_01'
         ox_inventory:RegisterStash(stashName, row.name, DEFAULT_SLOTS, DEFAULT_CAPACITY)
     end
 
@@ -108,6 +122,20 @@ AddEventHandler('blanchiment:requestPoints', function()
         }
     end
     TriggerClientEvent('blanchiment:loadPoints', src, points)
+
+    -- Charger les chefs pour ce joueur
+    local chefs = {}
+    for id, coords in pairs(chefCoords) do
+        chefs[#chefs+1] = {
+            id   = id,
+            x    = coords.x,
+            y    = coords.y,
+            z    = coords.z,
+            name = chefNames[id],
+            ped  = chefPedModels[id]
+        }
+    end
+    TriggerClientEvent('blanchiment:loadChefs', src, chefs)
 end)
 
 
@@ -131,6 +159,32 @@ AddEventHandler('blanchiment:addPedPoint', function(coords)
             ['@z'] = coords.z
         }
     )
+end)
+
+-- Placement d\'un chef sur la position du joueur
+RegisterNetEvent('blanchiment:placeChef')
+AddEventHandler('blanchiment:placeChef', function(name, coords)
+    local pedName = getRandomPedName()
+    local insertId = MySQL.Sync.insert([[ 
+        INSERT INTO blanchiment_chef
+          (name, inventory, ped, x, y, z)
+        VALUES
+          (@name, @inventory, @ped, @x, @y, @z)
+    ]], {
+        ['@name']      = name,
+        ['@inventory'] = json.encode({count = 0, slot = 1, name = ''}),
+        ['@ped']       = pedName,
+        ['@x']         = coords.x,
+        ['@y']         = coords.y,
+        ['@z']         = coords.z
+    })
+
+    chefCoords[insertId]    = vector3(coords.x, coords.y, coords.z)
+    chefNames[insertId]     = name
+    chefPedModels[insertId] = pedName
+    ox_inventory:RegisterStash('chef_' .. insertId, name, DEFAULT_SLOTS, DEFAULT_CAPACITY)
+
+    TriggerClientEvent('blanchiment:chefPlaced', source, insertId, coords, name, pedName)
 end)
 
 -- Verification de l'autorisation a ouvrir le menu
