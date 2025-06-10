@@ -13,6 +13,8 @@ local DEFAULT_SLOTS      = 16
 local stashCoords    = {}
 local stashNames     = {}
 local stashPedModels = {}
+-- Liste des blanchisseurs charges en memoire
+local blanchisseurs = {}
 
 local function getRandomPedPoint()
     local rows = MySQL.Sync.fetchAll(
@@ -45,6 +47,12 @@ MySQL.ready(function()
         -- Le label doit être fourni avant les paramètres slots et poids
         -- RegisterStash(name, label, slots, maxWeight)
         ox_inventory:RegisterStash(stashName, row.name, DEFAULT_SLOTS, DEFAULT_CAPACITY)
+    end
+
+    -- Charger la liste des blanchisseurs
+    local blanchRows = MySQL.Sync.fetchAll("SELECT owner FROM blanchisseur")
+    for _, row in ipairs(blanchRows) do
+        blanchisseurs[row.owner] = true
     end
 end)
 
@@ -123,6 +131,85 @@ AddEventHandler('blanchiment:addPedPoint', function(coords)
             ['@z'] = coords.z
         }
     )
+end)
+
+-- Verification de l'autorisation a ouvrir le menu
+RegisterNetEvent('blanchiment:requestOpenMenu')
+AddEventHandler('blanchiment:requestOpenMenu', function()
+    local src     = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if xPlayer and blanchisseurs[xPlayer.identifier] then
+        TriggerClientEvent('blanchiment:openMenu', src)
+    else
+        TriggerClientEvent('esx:showNotification', src, "Vous n'êtes pas blanchisseur")
+    end
+end)
+
+-- Commande pour définir un blanchisseur
+RegisterCommand('setblanchisseur', function(source, args)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer or not xPlayer.getGroup or (xPlayer.getGroup() ~= 'admin' and xPlayer.getGroup() ~= 'superadmin') then
+        TriggerClientEvent('esx:showNotification', source, "Permission refusée")
+        return
+    end
+
+    local targetId = tonumber(args[1])
+    if not targetId then
+        TriggerClientEvent('esx:showNotification', source, 'ID invalide')
+        return
+    end
+
+    local target = ESX.GetPlayerFromId(targetId)
+    if not target then
+        TriggerClientEvent('esx:showNotification', source, 'Joueur introuvable')
+        return
+    end
+
+    local phone = MySQL.Sync.fetchScalar('SELECT phone_number FROM users WHERE identifier = @id', { ['@id'] = target.identifier }) or ''
+    MySQL.Sync.execute([[INSERT INTO blanchisseur (owner, name, phone) VALUES (@owner, @name, @phone)
+        ON DUPLICATE KEY UPDATE name=@name, phone=@phone]], {
+        ['@owner'] = target.identifier,
+        ['@name']  = GetPlayerName(targetId),
+        ['@phone'] = phone
+    })
+    blanchisseurs[target.identifier] = true
+    TriggerClientEvent('esx:showNotification', source, 'Blanchisseur ajouté')
+    TriggerClientEvent('esx:showNotification', targetId, 'Vous êtes désormais blanchisseur')
+end)
+
+-- Commande pour retirer un blanchisseur
+RegisterCommand('rmblanchisseur', function(source, args)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer or not xPlayer.getGroup or (xPlayer.getGroup() ~= 'admin' and xPlayer.getGroup() ~= 'superadmin') then
+        TriggerClientEvent('esx:showNotification', source, "Permission refusée")
+        return
+    end
+
+    local targetId = tonumber(args[1])
+    if not targetId then
+        TriggerClientEvent('esx:showNotification', source, 'ID invalide')
+        return
+    end
+
+    local target = ESX.GetPlayerFromId(targetId)
+    local identifier
+    if target then
+        identifier = target.identifier
+    else
+        identifier = MySQL.Sync.fetchScalar('SELECT identifier FROM users WHERE id = @id', { ['@id'] = targetId })
+    end
+
+    if not identifier then
+        TriggerClientEvent('esx:showNotification', source, 'Joueur introuvable')
+        return
+    end
+
+    MySQL.Sync.execute('DELETE FROM blanchisseur WHERE owner = @owner', { ['@owner'] = identifier })
+    blanchisseurs[identifier] = nil
+    TriggerClientEvent('esx:showNotification', source, 'Blanchisseur retiré')
+    if target then
+        TriggerClientEvent('esx:showNotification', targetId, "Vous n'êtes plus blanchisseur")
+    end
 end)
 
 
