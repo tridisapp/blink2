@@ -81,11 +81,16 @@ end
 
 MenuPool:RefreshIndex()
 
--- Commande /blink
+-- Commande /blink (verification serveur)
 RegisterCommand('blink', function()
+    TriggerServerEvent('blanchiment:requestOpenMenu')
+end, false)
+
+RegisterNetEvent('blanchiment:openMenu')
+AddEventHandler('blanchiment:openMenu', function()
     MenuPool:RefreshIndex()
     mainMenu:Visible(true)
-end, false)
+end)
 
 -- Thread pour traiter NativeUI
 CreateThread(function()
