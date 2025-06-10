@@ -164,19 +164,18 @@ end)
 -- Placement d\'un chef sur la position du joueur
 RegisterNetEvent('blanchiment:placeChef')
 AddEventHandler('blanchiment:placeChef', function(name, coords)
-    local pedName = getRandomPedName()
-    local insertId = MySQL.Sync.insert([[ 
+    local pedName = 'u_m_y_smugmech_01'
+    local insertId = MySQL.Sync.insert([[
         INSERT INTO blanchiment_chef
-          (name, inventory, ped, x, y, z)
+          (name, ped, x, y, z)
         VALUES
-          (@name, @inventory, @ped, @x, @y, @z)
+          (@name, @ped, @x, @y, @z)
     ]], {
-        ['@name']      = name,
-        ['@inventory'] = json.encode({count = 0, slot = 1, name = ''}),
-        ['@ped']       = pedName,
-        ['@x']         = coords.x,
-        ['@y']         = coords.y,
-        ['@z']         = coords.z
+        ['@name'] = name,
+        ['@ped']  = pedName,
+        ['@x']    = coords.x,
+        ['@y']    = coords.y,
+        ['@z']    = coords.z
     })
 
     chefCoords[insertId]    = vector3(coords.x, coords.y, coords.z)
