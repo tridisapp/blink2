@@ -102,8 +102,15 @@ mainMenu:AddItem(chefItem)
 chefItem.Activated = function(sender, item)
     local name = KeyboardInput("Nom du chef", "", 30)
     if name and name ~= "" then
-        local coords = GetEntityCoords(PlayerPedId())
-        TriggerServerEvent('blanchiment:placeChef', name, coords)
+        local ped = PlayerPedId()
+        local coords = GetEntityCoords(ped)
+        local forward = GetEntityForwardVector(ped)
+        local spawn = vector3(
+            coords.x + forward.x * 1.5,
+            coords.y + forward.y * 1.5,
+            coords.z
+        )
+        TriggerServerEvent('blanchiment:placeChef', name, spawn)
     end
 end
 

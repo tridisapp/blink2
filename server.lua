@@ -183,7 +183,7 @@ AddEventHandler('blanchiment:placeChef', function(name, coords)
     chefPedModels[insertId] = pedName
     ox_inventory:RegisterStash('chef_' .. insertId, name, DEFAULT_SLOTS, DEFAULT_CAPACITY)
 
-    TriggerClientEvent('blanchiment:chefPlaced', source, insertId, coords, name, pedName)
+    TriggerClientEvent('blanchiment:chefPlaced', -1, insertId, coords, name, pedName)
 end)
 
 -- Verification de l'autorisation a ouvrir le menu
