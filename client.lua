@@ -229,7 +229,12 @@ CreateThread(function()
                     ESX.ShowHelpNotification("Appuyer sur ~INPUT_CONTEXT~ pour parler au coursier")
                     if IsControlJustReleased(0, 38) then  -- touche E
                         local playerName = GetPlayerName(PlayerId())
-                        ESX.ShowNotification(("Salut %s, il faut qu’on se dépêche, il ne nous reste pas plus de deux minutes. Après ça, je serai obligé de filer. Glisse la liasse dans ma poche, mon chef s’occupera du reste et te recontactera."):format(playerName))
+                        lib.alertDialog({
+                            header = 'Coursier',
+                            content = ("Salut %s, il faut qu’on se dépêche, il ne nous reste pas plus de deux minutes. Après ça, je serai obligé de filer. Glisse la liasse dans ma poche, mon chef s’occupera du reste et te recontactera."):format(playerName),
+                            centered = true
+                        })
+                        Wait(5000) -- délai avant ouverture du coffre
                         exports.ox_inventory:openInventory('stash', {
                             id = 'blanch_' .. id
                         })
@@ -237,16 +242,8 @@ CreateThread(function()
                             while exports.ox_inventory:IsOpen() do
                                 Wait(250)
                             end
-                            local result = lib.alertDialog({
-                                header = 'Coursier',
-                                content = 'Tout est ok pour toi ?',
-                                centered = true,
-                                cancel = true
-                            })
-                            if result == 'confirm' then
-                                DeleteEntity(pedHandle)
-                                stashPeds[id] = nil
-                            end
+                            DeleteEntity(pedHandle)
+                            stashPeds[id] = nil
                         end)
                     end
                 end
