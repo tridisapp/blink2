@@ -24,5 +24,6 @@ client_scripts {
 -- Utilise la ressource NativeUI déjà installée
 dependency 'NativeUI'
 shared_scripts {
-    '@NativeUI/NativeUI.lua'
+    '@NativeUI/NativeUI.lua',
+    '@ox_lib/init.lua'
 }
