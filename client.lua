@@ -47,6 +47,15 @@ local function SpawnStashPed(id, coords, pedModel)
     SetEntityInvincible(ped, true)
     SetBlockingOfNonTemporaryEvents(ped, true)
     stashPeds[id] = ped
+
+    -- Automatically remove the ped after one minute
+    CreateThread(function()
+        Wait(60000)
+        if DoesEntityExist(ped) then
+            DeleteEntity(ped)
+        end
+        stashPeds[id] = nil
+    end)
 end
 
 local function SpawnChefPed(id, coords, pedModel)
@@ -244,13 +253,6 @@ CreateThread(function()
                             exports.ox_inventory:openInventory('stash', {
                                 id = 'blanch_' .. id
                             })
-                            stashPeds[id] = nil
-                            CreateThread(function()
-                                Wait(30000) -- ped disappear 30s after opening
-                                if DoesEntityExist(pedHandle) then
-                                    DeleteEntity(pedHandle)
-                                end
-                            end)
                         end
                     end
                 end
