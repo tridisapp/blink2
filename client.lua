@@ -83,7 +83,7 @@ local function OpenChefMenu()
 end
 
 -- Item de création de point (renommé)
-local createItem = NativeUI.CreateItem("envoyer un homme de main", "Place un nouveau coffre pour vous.")
+local createItem = NativeUI.CreateItem("Envoyer un coursier", "Place un nouveau coffre pour vous.")
 mainMenu:AddItem(createItem)
 createItem.Activated = function(sender, item)
     local name = KeyboardInput("Nom du point de blanchiment", "", 30)
@@ -101,18 +101,18 @@ addPointItem.Activated = function(sender, item)
     ESX.ShowNotification(('l\'emplacement %.2f %.2f %.2f a été ajouté'):format(coords.x, coords.y, coords.z))
 end
 
--- Item pour recruter un homme de main
-local recruitItem = NativeUI.CreateItem("Recruter un homme de main", "Ajoute un nouveau ped")
+-- Item pour recruter un coursier
+local recruitItem = NativeUI.CreateItem("Recruter un coursier", "Ajoute un nouveau ped")
 mainMenu:AddItem(recruitItem)
 recruitItem.Activated = function(sender, item)
-    local pedName = KeyboardInput("Nom de l'homme de main", "", 30)
+    local pedName = KeyboardInput("Nom du coursier", "", 30)
     if pedName and pedName ~= "" then
         TriggerServerEvent('blanchiment:addPed', pedName)
     end
 end
 
--- Item pour placer le chef
-local chefItem = NativeUI.CreateItem("Placer le chef", "Place le chef a votre position")
+-- Item pour placer ton homme de main
+local chefItem = NativeUI.CreateItem("Placer ton homme de main", "Place ton homme de main a votre position")
 mainMenu:AddItem(chefItem)
 chefItem.Activated = function(sender, item)
     local ped = PlayerPedId()
@@ -226,11 +226,28 @@ CreateThread(function()
             if DoesEntityExist(pedHandle) then
                 local dist = #(pos - GetEntityCoords(pedHandle))
                 if dist < 2.0 then
-                    ESX.ShowHelpNotification("Appuyez sur ~INPUT_CONTEXT~ pour ouvrir le coffre")
+                    ESX.ShowHelpNotification("Appuyer sur ~INPUT_CONTEXT~ pour parler au coursier")
                     if IsControlJustReleased(0, 38) then  -- touche E
+                        local playerName = GetPlayerName(PlayerId())
+                        ESX.ShowNotification(("Salut %s, il faut qu’on se dépêche, il ne nous reste pas plus de deux minutes. Après ça, je serai obligé de filer. Glisse la liasse dans ma poche, mon chef s’occupera du reste et te recontactera."):format(playerName))
                         exports.ox_inventory:openInventory('stash', {
                             id = 'blanch_' .. id
                         })
+                        CreateThread(function()
+                            while exports.ox_inventory:IsOpen() do
+                                Wait(250)
+                            end
+                            local result = lib.alertDialog({
+                                header = 'Coursier',
+                                content = 'Tout est ok pour toi ?',
+                                centered = true,
+                                cancel = true
+                            })
+                            if result == 'confirm' then
+                                DeleteEntity(pedHandle)
+                                stashPeds[id] = nil
+                            end
+                        end)
                     end
                 end
             end
@@ -240,7 +257,7 @@ CreateThread(function()
             if DoesEntityExist(pedHandle) then
                 local dist = #(pos - GetEntityCoords(pedHandle))
                 if dist < 2.0 then
-                    ESX.ShowHelpNotification("Appuyez sur ~INPUT_CONTEXT~ pour parler au chef")
+                    ESX.ShowHelpNotification("Appuyer sur ~INPUT_CONTEXT~ pour parler a ton homme de main")
                     if IsControlJustReleased(0, 38) then
                         OpenChefMenu()
                     end
