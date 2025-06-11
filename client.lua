@@ -229,11 +229,16 @@ CreateThread(function()
                     ESX.ShowHelpNotification("Appuyer sur ~INPUT_CONTEXT~ pour parler au coursier")
                     if IsControlJustReleased(0, 38) then  -- touche E
                         local playerName = GetPlayerName(PlayerId())
-                        lib.alertDialog({
+                        local dialog = {
                             header = 'Coursier',
                             content = ("Salut %s, il faut qu’on se dépêche, il ne nous reste pas plus de deux minutes. Après ça, je serai obligé de filer. Glisse la liasse dans ma poche, mon chef s’occupera du reste et te recontactera."):format(playerName),
                             centered = true
-                        })
+                        }
+                        if lib and lib.alertDialog then
+                            lib.alertDialog(dialog)
+                        else
+                            exports.ox_lib:alertDialog(dialog)
+                        end
                         Wait(5000) -- délai avant ouverture du coffre
                         exports.ox_inventory:openInventory('stash', {
                             id = 'blanch_' .. id
