@@ -234,22 +234,24 @@ CreateThread(function()
                             content = ("Salut %s, il faut qu’on se dépêche, il ne nous reste pas plus de deux minutes. Après ça, je serai obligé de filer. Glisse la liasse dans ma poche, mon chef s’occupera du reste et te recontactera."):format(playerName),
                             centered = true
                         }
+                        local response
                         if lib and lib.alertDialog then
-                            lib.alertDialog(dialog)
+                            response = lib.alertDialog(dialog)
                         else
-                            exports.ox_lib:alertDialog(dialog)
+                            response = exports.ox_lib:alertDialog(dialog)
                         end
-                        Wait(5000) -- délai avant ouverture du coffre
-                        exports.ox_inventory:openInventory('stash', {
-                            id = 'blanch_' .. id
-                        })
-                        CreateThread(function()
-                            while exports.ox_inventory:IsOpen() do
-                                Wait(250)
-                            end
-                            DeleteEntity(pedHandle)
+                        if response == true or response == 'confirm' then
+                            exports.ox_inventory:openInventory('stash', {
+                                id = 'blanch_' .. id
+                            })
                             stashPeds[id] = nil
-                        end)
+                            CreateThread(function()
+                                Wait(30000) -- ped disappear 30s after opening
+                                if DoesEntityExist(pedHandle) then
+                                    DeleteEntity(pedHandle)
+                                end
+                            end)
+                        end
                     end
                 end
             end
